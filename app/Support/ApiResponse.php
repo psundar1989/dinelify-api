@@ -23,4 +23,19 @@ class ApiResponse
             'errors' => $errors ?? (object) [],
         ], $status);
     }
+
+    public static function paginated(\Illuminate\Contracts\Pagination\LengthAwarePaginator $paginator, mixed $data, string $message = 'OK'): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $data,
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
+        ]);
+    }
 }
