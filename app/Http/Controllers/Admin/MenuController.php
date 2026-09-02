@@ -31,9 +31,14 @@ class MenuController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // A brand-new menu can't have meals yet (they're added on the next
+        // screen), so it can never legitimately start out "published" — that
+        // would put an empty day live for users with nothing to order.
         $data = $request->validate([
             'menu_date' => ['required', 'date_format:Y-m-d', 'unique:menus,menu_date'],
-            'status' => ['required', 'in:draft,published,disabled'],
+            'status' => ['required', 'in:draft,disabled'],
+        ], [
+            'status.in' => 'A new menu cannot be published yet — save it, add meals, then publish it from the menu list.',
         ]);
 
         $menu = Menu::query()->create($data);
@@ -56,6 +61,10 @@ class MenuController extends Controller
             'status' => ['required', 'in:draft,published,disabled'],
         ]);
 
+        if ($data['status'] === 'published' && $menu->meals()->doesntExist()) {
+            return back()->withErrors(['status' => 'Add at least one meal before publishing this menu.'])->withInput();
+        }
+
         $menu->update($data);
 
         return redirect()->route('admin.menus.edit', $menu)->with('status', 'Menu updated successfully.');
@@ -70,6 +79,10 @@ class MenuController extends Controller
 
     public function publish(Menu $menu): RedirectResponse
     {
+        if ($menu->meals()->doesntExist()) {
+            return redirect()->back()->with('status', 'Cannot publish — add at least one meal to this menu first.');
+        }
+
         $menu->update(['status' => 'published']);
 
         return redirect()->back()->with('status', 'Menu published.');

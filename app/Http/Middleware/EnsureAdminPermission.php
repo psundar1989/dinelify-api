@@ -15,7 +15,7 @@ class EnsureAdminPermission
         $user = $request->user();
 
         if (! $user instanceof AdminUser || $user->status !== 'active' || ! $user->can($permission)) {
-            return ApiResponse::error('This action is unauthorized.', null, 403);
+            return ApiResponse::error('Forbidden.', null, 403);
         }
 
         return $next($request);

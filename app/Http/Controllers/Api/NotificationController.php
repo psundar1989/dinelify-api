@@ -23,7 +23,7 @@ class NotificationController extends Controller
     public function markAsRead(Request $request, AppNotification $notification): JsonResponse
     {
         if ($notification->user_id !== $request->user()->id) {
-            return ApiResponse::error('This action is unauthorized.', null, 403);
+            return ApiResponse::error('Forbidden.', null, 403);
         }
 
         $notification->update(['read_at' => now()]);
