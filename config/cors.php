@@ -21,7 +21,10 @@ return [
 
     'allowed_origins' => array_filter(explode(',', env('CORS_ALLOWED_ORIGINS', '*'))),
 
-    'allowed_origins_patterns' => [],
+    // Regex patterns for origins that can't be listed as fixed strings above —
+    // e.g. `flutter run -d chrome` binds Flutter Web's dev server to a random
+    // port each run, so a fixed CORS_ALLOWED_ORIGINS entry can't cover it.
+    'allowed_origins_patterns' => array_filter(explode(',', env('CORS_ALLOWED_ORIGIN_PATTERNS', ''))),
 
     'allowed_headers' => ['*'],
 

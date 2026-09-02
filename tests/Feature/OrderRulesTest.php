@@ -114,6 +114,29 @@ test('order for tomorrow succeeds before its cutoff and locks after it', functio
         ->assertJson(['success' => false, 'message' => 'Order cutoff time has passed']);
 });
 
+test('an upcoming date within the advance window is orderable even before its menu is published', function () {
+    [$user] = seedOrderableWorld();
+    $tomorrow = Carbon::today()->addDay();
+
+    // Unlike seedOrderableWorld(), no Menu row exists yet for this date.
+    Menu::query()->whereDate('menu_date', $tomorrow->format('Y-m-d'))->delete();
+
+    $response = actingAsUser($user)->getJson('/api/menus/'.$tomorrow->format('Y-m-d'));
+
+    $response->assertStatus(200)->assertJsonPath('data.is_orderable', true);
+});
+
+test('a date the admin has disabled is locked even though it is within the advance window', function () {
+    [$user] = seedOrderableWorld();
+    $tomorrow = Carbon::today()->addDay();
+
+    Menu::query()->whereDate('menu_date', $tomorrow->format('Y-m-d'))->update(['status' => 'disabled']);
+
+    $response = actingAsUser($user)->getJson('/api/menus/'.$tomorrow->format('Y-m-d'));
+
+    $response->assertStatus(200)->assertJsonPath('data.is_orderable', false);
+});
+
 test('duplicate orders for the same date are rejected', function () {
     [$user] = seedOrderableWorld();
     $date = Carbon::today()->addDays(1)->format('Y-m-d');

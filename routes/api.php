@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\AdminAuthController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\LocationController;
@@ -52,6 +53,14 @@ Route::middleware(['auth:sanctum', 'admin.permission:view-reports'])->prefix('re
     Route::get('/weekly', [ReportController::class, 'weekly']);
     Route::get('/location', [ReportController::class, 'location']);
     Route::get('/meal', [ReportController::class, 'meal']);
+});
+
+Route::middleware(['auth:sanctum', 'admin.permission:manage-users'])->prefix('admin/users')->group(function () {
+    Route::get('/', [AdminUserController::class, 'index']);
+    Route::post('/', [AdminUserController::class, 'store']);
+    Route::put('/{user}', [AdminUserController::class, 'update']);
+    Route::delete('/{user}', [AdminUserController::class, 'destroy']);
+    Route::patch('/{user}/toggle-status', [AdminUserController::class, 'toggleStatus']);
 });
 
 Route::post('/admin/logout', [AdminAuthController::class, 'logout'])->middleware('auth:sanctum');
